@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historia de los Números Adimensionales - Mecánica de Fluidos</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&family=Fira+Code:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #f1f5f9; /* Slate-100 */
+            color: #1e293b; /* Slate-800 */
+        }
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+        }
+        .math-font {
+            font-family: 'Fira Code', monospace;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        .cover-page {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Data: The Dimensionless Numbers
+        const numbersData = [
+            {
+                id: 'reynolds',
+                name: 'Número de Reynolds',
+                symbol: 'Re',
+                formula: '(ρvD) / μ',
+                forces: ['Inercia', 'Viscosidad'],
+                year: '1883',
+                author: 'Osborne Reynolds',
+                desc: 'El descubrimiento más famoso. Reynolds inyectó tinta en un tubo de vidrio y observó que el cambio entre flujo ordenado (laminar) y caótico (turbulento) depende del balance entre la inercia del fluido y su viscosidad.',
+                category: 'Viscosidad',
+                image: "https://github.com/Juansanher25/Adimensional/blob/main/Comparaci%C3%B3n%20de%20Reynolds.jpg?raw=true",
+                imageCaption: "Comparación visual del flujo: Laminar vs Turbulento",
+                example: {
+                    scenario: "Un fluido con densidad 1500 kg/m³ y viscosidad absoluta 0.01 Pa·s se mueve a 5 m/s por una tubería de diámetro interno 2.5 cm (0.025 m).",
+                    calc: "Re = (5 m/s × 1500 kg/m³ × 0.025 m) / 0.01 Pa·s = 18750",
+                    result: "18750",
+                    interpretation: "Este Reynolds es mayor a 4000 (límite típico en tuberías). Por tanto, se considera un flujo turbulento, donde predominan las fuerzas de inercia sobre las fuerzas viscosas, generando mezcla y caos."
+                }
+            },
+            {
+                id: 'mach',
+                name: 'Número de Mach',
+                symbol: 'Ma',
+                formula: 'v / c',
+                forces: ['Inercia', 'Elasticidad'],
+                year: '1887',
+                author: 'Ernst Mach',
+                desc: 'Relaciona la velocidad del objeto con la velocidad del sonido en el medio. Fundamental para determinar la compresibilidad del flujo.',
+                category: 'Compresibilidad',
+                image: "https://github.com/Juansanher25/Adimensional/blob/main/ComparaMa2.jpg?raw=true",
+                imageCaption: "Ondas de choque en diferentes regímenes de Mach",
+                example: {
+                    scenario: "Un fluido se mueve a 300 m/s a unas condiciones en las que el sonido se mueve a 1200 m/s en ese mismo fluido.",
+                    calc: "Ma = 300 / 1200 = 0.25",
+                    result: "0.25",
+                    interpretation: "Es un flujo subsónico de tipo incompresible (Ma < 0.3). Esto significa que, aunque el fluido se mueve rápido, su densidad no cambia significativamente por efectos de compresibilidad."
+                }
+            },
+            {
+                id: 'froude',
+                name: 'Número de Froude',
+                symbol: 'Fr',
+                formula: 'v / √(gL)',
+                forces: ['Inercia', 'Gravedad'],
+                year: '1870s',
+                author: 'William Froude',
+                desc: 'Crucial en canales abiertos e hidráulica naval. Determina el régimen del flujo basándose en la velocidad de la onda superficial.',
+                category: 'Superficie Libre',
+                image: "https://github.com/Juansanher25/Adimensional/blob/main/SALTO%20HIDR%C3%81ULICO.jpg?raw=true",
+                imageCaption: "Salto Hidráulico: Fenómeno gobernado por Froude",
+                example: {
+                    scenario: "Agua fluye en un canal rectangular con una profundidad (L) de 2 m a una velocidad (v) de 10 m/s. (g ≈ 9.81 m/s²).",
+                    calc: "Fr = 10 / √(9.81 × 2) ≈ 10 / 4.43 = 2.25",
+                    result: "2.25",
+                    interpretation: "Como Fr > 1, el flujo es Supercrítico (rápido o torrencial). Las fuerzas inerciales dominan sobre la gravedad. Cualquier perturbación aguas abajo no puede viajar aguas arriba."
+                }
+            },
+            {
+                id: 'euler',
+                name: 'Número de Euler',
+                symbol: 'Eu',
+                formula: 'Δp / (ρv²)',
+                forces: ['Presión', 'Inercia'],
+                year: '1757 (Implícito)',
+                author: 'Leonhard Euler',
+                desc: 'Relaciona la caída de presión con la presión dinámica. Se usa para caracterizar pérdidas de energía en un flujo.',
+                category: 'Dinámica',
+                example: {
+                    scenario: "En una válvula, se mide una caída de presión (Δp) de 2000 Pa. El fluido (agua, ρ=1000 kg/m³) pasa a 2 m/s.",
+                    calc: "Eu = 2000 / (1000 × 2²) = 2000 / 4000 = 0.5",
+                    result: "0.5",
+                    interpretation: "Indica que la caída de presión estática es la mitad de la presión dinámica del flujo. Es un coeficiente de pérdida adimensional útil para escalar a otros tamaños."
+                }
+            },
+            {
+                id: 'weber',
+                name: 'Número de Weber',
+                symbol: 'We',
+                formula: '(ρv²L) / σ',
+                forces: ['Inercia', 'Tensión Superficial'],
+                year: '1919',
+                author: 'Moritz Weber',
+                desc: 'Importante en flujos multifásicos, formación de gotas y sprays. Compara la inercia con la tensión superficial.',
+                category: 'Superficie Libre',
+                image: "https://github.com/Juansanher25/Adimensional/blob/main/ComparaWe.jpg?raw=true",
+                imageCaption: "Efecto de Weber en la formación de gotas",
+                example: {
+                    scenario: "Una gota de lluvia (L=0.003 m) cae a 8 m/s en aire (ρ_aire ≈ 1.2 kg/m³). Tensión superficial agua (σ) = 0.073 N/m.",
+                    calc: "We = (1.2 × 8² × 0.003) / 0.073 ≈ 3.15",
+                    result: "3.15",
+                    interpretation: "Valor moderado. Si We fuera muy alto (ej. > 12), las fuerzas inerciales del aire romperían la gota (atomización). Aquí, la tensión superficial aún logra mantener la gota unida."
+                }
+            },
+            {
+                id: 'strouhal',
+                name: 'Número de Strouhal',
+                symbol: 'St',
+                formula: '(fL) / v',
+                forces: ['Oscilación', 'Inercia'],
+                year: '1878',
+                author: 'Vincenc Strouhal',
+                desc: 'Describe flujos oscilatorios. Esencial para analizar la vibración de cables y el desprendimiento de vórtices.',
+                category: 'Oscilación',
+                example: {
+                    scenario: "El viento sopla a 20 m/s sobre un cable de 0.01 m de diámetro. Los vórtices se desprenden a una frecuencia (f) de 400 Hz.",
+                    calc: "St = (400 × 0.01) / 20 = 4 / 20 = 0.2",
+                    result: "0.2",
+                    interpretation: "El valor 0.2 es clásico para cilindros en un amplio rango de Reynolds. Indica que la inestabilidad del flujo (vórtices) tiene una periodicidad definida respecto a la velocidad."
+                }
+            },
+            {
+                id: 'power',
+                name: 'Número de Potencia',
+                symbol: 'Np',
+                formula: 'P / (ρn³D⁵)',
+                forces: ['Arrastre (Potencia)', 'Inercia'],
+                year: 'Siglo XX',
+                author: 'Ingeniería Industrial',
+                desc: 'Fundamental en diseño de agitadores. Relaciona la potencia consumida con la inercia del fluido movido por el impulsor.',
+                category: 'Maquinaria',
+                example: {
+                    scenario: "Un agitador de 0.5 m de diámetro (D) gira a 2 rev/s (n) en agua (1000 kg/m³), consumiendo 50 Watts (P).",
+                    calc: "Np = 50 / (1000 × 2³ × 0.5⁵) = 50 / (1000 × 8 × 0.03125) = 50 / 250 = 0.2",
+                    result: "0.2",
+                    interpretation: "Este es el coeficiente de potencia característico del impulsor. Si doblamos la velocidad de giro (n), la potencia necesaria aumentaría con el cubo de la velocidad (x8)."
+                }
+            },
+            {
+                id: 'knudsen',
+                name: 'Número de Knudsen',
+                symbol: 'Kn',
+                formula: 'λ / L',
+                forces: ['Escala Molecular', 'Escala Física'],
+                year: '1909',
+                author: 'Martin Knudsen',
+                desc: 'Determina si el medio continuo es válido. Compara el recorrido libre medio molecular con el tamaño del sistema.',
+                category: 'Microescala',
+                example: {
+                    scenario: "Aire a baja presión donde el recorrido libre medio (λ) es 1 µm. Fluye por un canal de microchip de 10 µm de ancho (L).",
+                    calc: "Kn = 1 / 10 = 0.1",
+                    result: "0.1",
+                    interpretation: "Estamos en el régimen de 'Slip Flow' (Flujo de deslizamiento). Ya no podemos asumir que la velocidad en la pared es cero (condición de no deslizamiento). Se requieren correcciones a las ecuaciones de Navier-Stokes."
+                }
+            },
+            {
+                id: 'cavitation',
+                name: 'Número de Cavitación',
+                symbol: 'σ (Ca)',
+                formula: '(p - pv) / (½ρv²)',
+                forces: ['Presión', 'Inercia'],
+                year: 'Siglo XX',
+                author: 'Derivado de Euler',
+                desc: 'Predice el riesgo de cavitación (ebullición por baja presión). Crítico en bombas y hélices.',
+                category: 'Dinámica',
+                image: "https://github.com/Juansanher25/Adimensional/blob/main/Aplicaciones%20de%20cavitaci%C3%B3n.jpg?raw=true",
+                imageCaption: "Aplicaciones de cavitación. Modificado de Galloni et al. (2025)",
+                example: {
+                    scenario: "En la entrada de una bomba, la presión absoluta es 50 kPa. La presión de vapor del agua es 2.3 kPa. La presión dinámica (½ρv²) es 100 kPa.",
+                    calc: "σ = (50 - 2.3) / 100 = 0.477",
+                    result: "0.477",
+                    interpretation: "Si este valor es menor que el sigma crítico del fabricante de la bomba, ocurrirá cavitación, dañando los álabes y reduciendo la eficiencia drásticamente."
+                }
+            }
+        ];
+
+        // Forces List for the Arena
+        const forcesList = [
+            'Inercia', 
+            'Viscosidad', 
+            'Gravedad', 
+            'Presión', 
+            'Elasticidad', 
+            'Tensión Superficial', 
+            'Oscilación',
+            'Arrastre (Potencia)' 
+        ];
+
+        // Icons component map
+        const Icons = {
+            Wind: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>,
+            Droplet: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>,
+            Activity: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
+            Scale: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>,
+            Book: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
+            Anchor: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="3"/><line x1="12" y1="22" x2="12" y2="8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/></svg>,
+            Zap: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+            Library: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>,
+            Info: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>,
+            Pen: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>,
+            Shapes: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v2h18V7"/><path d="M5 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/><path d="M19 9v12H5V9"/><path d="M12 9v12"/></svg>,
+            Video: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+        };
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('cover'); // Start with cover
+            const [selectedNumber, setSelectedNumber] = useState(null);
+
+            const enterApp = () => setActiveTab('intro');
+
+            return (
+                <div className="min-h-screen bg-slate-100 text-slate-800 selection:bg-green-200 selection:text-green-900 pb-20">
+                    
+                    {activeTab === 'cover' ? (
+                        <CoverPage onEnter={enterApp} />
+                    ) : (
+                        <>
+                            <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 mb-8 shadow-sm">
+                                <div className="max-w-6xl mx-auto px-4 flex justify-between items-center py-3">
+                                    <div className="text-xl font-serif font-bold text-slate-800 hidden md:block">Mecánica de Fluidos</div>
+                                    <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
+                                        <NavButton active={activeTab === 'intro'} onClick={() => setActiveTab('intro')} icon={Icons.Info} label="Fundamentos" />
+                                        <NavButton active={activeTab === 'library'} onClick={() => setActiveTab('library')} icon={Icons.Book} label="Biblioteca" />
+                                        <NavButton active={activeTab === 'buckingham'} onClick={() => setActiveTab('buckingham')} icon={Icons.Scale} label="Teorema Pi" />
+                                        <NavButton active={activeTab === 'similarity'} onClick={() => setActiveTab('similarity')} icon={Icons.Shapes} label="Semejanza" />
+                                        <NavButton active={activeTab === 'forces'} onClick={() => setActiveTab('forces')} icon={Icons.Activity} label="Arena de Fuerzas" />
+                                        <NavButton active={activeTab === 'exercises'} onClick={() => setActiveTab('exercises')} icon={Icons.Pen} label="Ejercicios" />
+                                        <NavButton active={activeTab === 'biblio'} onClick={() => setActiveTab('biblio')} icon={Icons.Library} label="Bibliografía" />
+                                    </div>
+                                </div>
+                            </nav>
+
+                            <main className="max-w-6xl mx-auto px-4 min-h-[60vh]">
+                                {activeTab === 'intro' && <IntroSection />}
+                                {activeTab === 'library' && <Library numbers={numbersData} onSelect={setSelectedNumber} selected={selectedNumber} />}
+                                {activeTab === 'buckingham' && <BuckinghamSection />}
+                                {activeTab === 'similarity' && <SimilaritySection />}
+                                {activeTab === 'forces' && <ForcesArena numbers={numbersData} forcesList={forcesList} />}
+                                {activeTab === 'exercises' && <ExercisesSection />}
+                                {activeTab === 'biblio' && <BibliographySection />}
+                            </main>
+
+                            <Footer />
+                        </>
+                    )}
+                </div>
+            );
+        };
+
+        const CoverPage = ({ onEnter }) => (
+            <div className="min-h-screen flex items-center justify-center p-4 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed">
+                <div className="cover-page max-w-3xl w-full p-12 md:p-16 text-center rounded-sm relative animate-fade-in bg-white/90 backdrop-blur-sm">
+                    {/* Decorative corners - University Yellow/Gold */}
+                    <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-yellow-600"></div>
+                    <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-yellow-600"></div>
+                    <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-yellow-600"></div>
+                    <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-yellow-600"></div>
+
+                    <div className="mb-12">
+                        {/* Universidad text removed as requested */}
+                        <h2 className="text-xl md:text-2xl font-serif text-slate-700 border-b border-slate-300 pb-4 inline-block px-12">Mecánica de Fluidos</h2>
+                    </div>
+
+                    <h1 className="text-4xl md:text-6xl font-serif font-bold text-slate-900 mb-6 leading-tight">
+                        Análisis Dimensional y Semejanza Dinámica
+                    </h1>
+
+                    <p className="text-lg md:text-xl text-slate-600 mb-12 font-light italic">
+                        "Una exploración histórica de los números adimensionales"
+                    </p>
+
+                    <div className="flex flex-col items-center space-y-2 mb-16 text-sm md:text-base text-slate-700">
+                        <p><strong>Profesor:</strong> Ph.D. Juan Sandoval Herrera</p>
+                        <p>2026</p>
+                    </div>
+
+                    <button 
+                        onClick={onEnter}
+                        className="group relative inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-white transition-all duration-200 bg-emerald-800 border border-emerald-700 rounded-sm hover:bg-emerald-700 hover:border-emerald-600 shadow-lg"
+                    >
+                        <span>Ingresar a la lección</span>
+                        <svg className="w-5 h-5 ml-2 -mr-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                    </button>
+                </div>
+            </div>
+        );
+
+        const IntroSection = () => (
+            <div className="max-w-4xl mx-auto space-y-12 animate-fade-in pb-12">
+                <div className="prose prose-lg max-w-none text-slate-700">
+                    <h2 className="text-4xl font-serif font-bold text-emerald-800 mb-6 border-b border-slate-200 pb-4">Fundamentos: Dimensiones y Unidades</h2>
+                    <p className="text-xl leading-relaxed">
+                        Antes de adentrarnos en los números adimensionales, es crucial distinguir entre la naturaleza física de una magnitud y la norma que usamos para medirla. Siguiendo los textos clásicos como el de <em>Streeter & Wylie (2000)</em>, establecemos las bases.
+                    </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-8">
+                    {/* Dimensiones */}
+                    <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-md">
+                        <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700 mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path><path d="M2 12h20"></path></svg>
+                        </div>
+                        <h3 className="text-2xl font-serif font-bold text-slate-800 mb-4">Dimensión</h3>
+                        <p className="text-slate-600 mb-4">
+                            Es la <strong>cualidad</strong> física que describe "qué es" una variable, independientemente de cuánto mida. Es el concepto abstracto.
+                        </p>
+                        <div className="bg-slate-50 p-4 rounded border border-slate-100 text-sm font-mono text-slate-700">
+                            Ejemplos: [L] Longitud, [M] Masa, [T] Tiempo
+                        </div>
+                    </div>
+
+                    {/* Unidades */}
+                    <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-md">
+                        <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-700 mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38"/></svg>
+                        </div>
+                        <h3 className="text-2xl font-serif font-bold text-slate-800 mb-4">Unidad</h3>
+                        <p className="text-slate-600 mb-4">
+                            Es la <strong>cantidad</strong> estandarizada arbitraria que usamos para cuantificar la dimensión. Depende del sistema elegido (SI, Inglés).
+                        </p>
+                        <div className="bg-slate-50 p-4 rounded border border-slate-100 text-sm font-mono text-slate-700">
+                            Ejemplos: metros, pies, kilogramos, slugs
+                        </div>
+                    </div>
+                </div>
+
+                {/* Magnitudes Fundamentales */}
+                <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-lg">
+                    <h3 className="text-2xl font-serif font-bold text-slate-800 mb-6 text-center">Las Magnitudes Fundamentales (Sistema MLT)</h3>
+                    <p className="text-center text-slate-600 mb-8 max-w-2xl mx-auto">
+                        Para el análisis dimensional, reducimos todas las variables físicas a una combinación de estas dimensiones primarias.
+                    </p>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {[
+                            { symbol: 'M', name: 'Masa', unit: 'kg' },
+                            { symbol: 'L', name: 'Longitud', unit: 'm' },
+                            { symbol: 'T', name: 'Tiempo', unit: 's' },
+                            { symbol: 'Θ', name: 'Temperatura', unit: 'K' }
+                        ].map(item => (
+                            <div key={item.symbol} className="text-center p-6 bg-slate-50 rounded-lg border border-slate-100 hover:border-emerald-200 transition-colors">
+                                <div className="text-4xl font-math font-bold text-emerald-700 mb-2">[{item.symbol}]</div>
+                                <div className="font-bold text-slate-700">{item.name}</div>
+                                <div className="text-xs text-slate-400 mt-1">SI: {item.unit}</div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-6 text-center text-sm text-slate-500 italic">
+                        Nota: En ingeniería también se usa el sistema FLT (Fuerza-Longitud-Tiempo), donde [F] = [MLT⁻²].
+                    </div>
+                </div>
+            </div>
+        );
+
+        const NavButton = ({ active, onClick, icon, label }) => (
+            <button 
+                onClick={onClick}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 whitespace-nowrap text-sm ${
+                    active 
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-sm font-bold' 
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200'
+                }`}
+            >
+                {icon}
+                <span className="font-medium tracking-wide">{label}</span>
+            </button>
+        );
+
+        const Library = ({ numbers, onSelect, selected }) => (
+            <div className="grid md:grid-cols-12 gap-6 animate-fade-in h-full">
+                {/* List Column */}
+                <div className="md:col-span-4 flex flex-col h-[75vh]">
+                    <h2 className="text-2xl font-serif font-bold mb-4 text-emerald-800 border-l-4 border-yellow-500 pl-4">El Catálogo</h2>
+                    <div className="flex-1 overflow-y-auto custom-scroll pr-2 space-y-3 pb-12"> 
+                        {numbers.map((num) => (
+                            <div 
+                                key={num.id}
+                                onClick={() => onSelect(num)}
+                                className={`p-4 rounded-lg cursor-pointer border transition-all duration-200 card-hover ${
+                                    selected?.id === num.id 
+                                    ? 'bg-white border-emerald-500 ring-1 ring-emerald-500 shadow-md' 
+                                    : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                                }`}
+                            >
+                                <div className="flex justify-between items-center mb-1">
+                                    <h3 className="font-bold text-base text-slate-800">{num.name}</h3>
+                                    <span className="text-[10px] font-mono bg-slate-100 px-2 py-0.5 rounded text-emerald-700 border border-slate-200">{num.symbol}</span>
+                                </div>
+                                <div className="flex items-center gap-2 mt-2">
+                                     <span className="text-[10px] uppercase tracking-wider text-slate-500">{num.year}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Detail Column */}
+                <div className="md:col-span-8 h-[75vh] overflow-y-auto custom-scroll pl-1">
+                    {selected ? (
+                        <div className="bg-white rounded-xl p-8 border border-slate-200 shadow-xl animate-fade-in">
+                            <div className="flex flex-col md:flex-row md:items-start justify-between mb-8 gap-4">
+                                <div>
+                                    <h2 className="text-4xl font-serif font-bold text-emerald-800 mb-2">{selected.name}</h2>
+                                    <div className="flex items-center text-slate-500 italic gap-2 text-sm">
+                                        <span>Postulado por: <span className="text-slate-800 font-medium">{selected.author}</span></span>
+                                        <span>•</span>
+                                        <span>{selected.year}</span>
+                                    </div>
+                                </div>
+                                <div className="text-6xl font-mono text-slate-100 select-none">{selected.symbol}</div>
+                            </div>
+
+                            <div className="bg-slate-50 rounded-lg p-8 mb-8 border border-slate-200 flex justify-center items-center shadow-inner relative overflow-hidden group">
+                                <code className="text-3xl md:text-4xl math-font text-emerald-700 relative z-10 font-bold">
+                                    {selected.symbol} = {selected.formula}
+                                </code>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 mb-8">
+                                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                    <span className="text-[10px] uppercase tracking-widest text-slate-500 block mb-1">Fuerza A (Promotora)</span>
+                                    <span className="font-bold text-lg text-emerald-600">{selected.forces[0]}</span>
+                                </div>
+                                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                    <span className="text-[10px] uppercase tracking-widest text-slate-500 block mb-1">Fuerza B (Resistiva)</span>
+                                    <span className="font-bold text-lg text-red-500">{selected.forces[1]}</span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div>
+                                    <h4 className="flex items-center text-emerald-700 font-bold uppercase tracking-wider text-sm mb-3 border-b border-slate-200 pb-2">
+                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                                        Contexto Histórico y Físico
+                                    </h4>
+                                    <p className="text-slate-700 leading-relaxed text-lg font-light mb-6">{selected.desc}</p>
+                                    
+                                    {/* Contenedor de Imagen añadida */}
+                                    {selected.image && (
+                                        <div className="mb-8 bg-slate-50 p-2 rounded-xl border border-slate-200 shadow-sm">
+                                            <img 
+                                                src={selected.image} 
+                                                alt={selected.name} 
+                                                className="w-full h-auto rounded-lg object-contain bg-white"
+                                            />
+                                            {selected.imageCaption && (
+                                                <p className="text-center text-xs text-slate-500 mt-2 italic px-4 py-1">{selected.imageCaption}</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Ejemplo Práctico con estilo institucional */}
+                                {selected.example && (
+                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mt-6">
+                                        <h4 className="flex items-center text-yellow-700 font-bold uppercase tracking-wider text-sm mb-4">
+                                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                            Ejemplo de Cálculo
+                                        </h4>
+                                        <div className="space-y-4">
+                                            <div>
+                                                <span className="text-xs uppercase text-slate-500 font-bold">Escenario:</span>
+                                                <p className="text-slate-800 text-sm mt-1">{selected.example.scenario}</p>
+                                            </div>
+                                            <div className="bg-white p-3 rounded font-mono text-sm border-l-4 border-yellow-500 text-slate-700 shadow-sm">
+                                                {selected.example.calc}
+                                            </div>
+                                            <div>
+                                                <span className="text-xs uppercase text-slate-500 font-bold">Interpretación del resultado ({selected.example.result}):</span>
+                                                <p className="text-slate-700 text-sm mt-1 italic leading-relaxed">"{selected.example.interpretation}"</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                <div className="mt-4 pt-4 border-t border-slate-200 flex justify-between items-center text-xs text-slate-400">
+                                    <span>Categoría: {selected.category}</span>
+                                    <span>ID: {selected.id}</span>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="h-full flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-300 rounded-xl p-12 bg-white">
+                            <div className="mb-6 text-slate-300">
+                                <svg className="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                            </div>
+                            <p className="text-2xl font-serif text-slate-500">Selecciona un número</p>
+                            <p className="text-sm mt-2">Explora los fundamentos de la mecánica de fluidos</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+
+        const BuckinghamSection = () => (
+            <div className="max-w-4xl mx-auto space-y-12 animate-fade-in pb-12">
+                <div className="prose prose-lg max-w-none text-slate-700">
+                    <h2 className="text-4xl font-serif font-bold text-emerald-800 mb-6 border-b border-slate-200 pb-4">El Teorema Pi: El Gran Unificador</h2>
+                    <p className="text-xl leading-relaxed">
+                        A principios del siglo XX, la ingeniería estaba fragmentada. Euler, Froude, Reynolds y Mach habían encontrado sus números por separado, impulsados por problemas específicos (tuberías, barcos, balas). Faltaba una metodología universal.
+                    </p>
+                    <p>
+                        En 1914, <strong>Edgar Buckingham</strong> formalizó el Teorema Pi. No fue un invento arbitrario, sino la conclusión lógica del principio de <strong>Homogeneidad Dimensional</strong>:
+                    </p>
+                    <blockquote className="border-l-4 border-emerald-500 pl-6 italic text-slate-600 my-8 bg-slate-50 py-4 pr-4 rounded-r">
+                        "Cualquier ecuación física que describa un fenómeno natural debe ser válida independientemente del sistema de unidades empleado por el observador humano."
+                    </blockquote>
+                </div>
+
+                <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-lg">
+                    <h3 className="text-2xl font-serif font-bold text-slate-800 mb-6 text-center">La Revolución Metodológica</h3>
+                    <div className="grid md:grid-cols-2 gap-8 mb-12">
+                        <div className="bg-slate-50 p-6 rounded-lg border border-red-200 relative">
+                             <div className="absolute -top-3 -left-3 bg-red-600 text-white text-xs px-3 py-1 rounded shadow">Antes</div>
+                            <h4 className="font-bold text-red-700 mb-3">Caos Experimental</h4>
+                            <p className="text-slate-600 text-sm leading-relaxed">
+                                Para estudiar la fuerza de arrastre (<span className="math-font italic">F</span>), se debía experimentar variando independientemente la velocidad (<span className="math-font italic">v</span>), el diámetro (<span className="math-font italic">D</span>), la densidad (<span className="math-font italic">ρ</span>) y la viscosidad (<span className="math-font italic">μ</span>).
+                            </p>
+                            <div className="mt-4 p-3 bg-white rounded font-mono text-xs text-red-600 text-center border border-red-100">
+                                F = f(v, D, ρ, μ) <br/>
+                                ¡Miles de gráficos necesarios!
+                            </div>
+                        </div>
+                        <div className="bg-slate-50 p-6 rounded-lg border border-emerald-200 relative">
+                            <div className="absolute -top-3 -left-3 bg-emerald-600 text-white text-xs px-3 py-1 rounded shadow">Después</div>
+                            <h4 className="font-bold text-emerald-700 mb-3">Orden Adimensional</h4>
+                            <p className="text-slate-600 text-sm leading-relaxed">
+                                Buckingham demostró que las 5 variables se reducen a solo 2 grupos adimensionales: el Coeficiente de Arrastre (<span className="math-font italic">C<sub>D</sub></span>) y el Número de Reynolds (<span className="math-font italic">Re</span>).
+                            </p>
+                            <div className="mt-4 p-3 bg-white rounded font-mono text-xs text-emerald-600 text-center border border-emerald-100">
+                                C<sub>D</sub> = f(Re) <br/>
+                                ¡Una sola curva universal!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Nuevo: Diagrama Metodología */}
+                <div className="mt-16">
+                    <h3 className="text-2xl font-serif font-bold text-emerald-800 mb-6 text-center border-b border-slate-200 pb-2">Metodología Paso a Paso</h3>
+                    <div className="flex flex-col md:flex-row gap-4 justify-center items-start">
+                        {[
+                            { step: 1, title: "Listar Variables", desc: "Identificar todas las variables físicas (n) que intervienen en el problema." },
+                            { step: 2, title: "Dimensiones", desc: "Escribir las dimensiones fundamentales (m) de cada variable (M, L, T)." },
+                            { step: 3, title: "Cálculo de Pi's", desc: "Determinar el número de grupos adimensionales: k = n - m." },
+                            { step: 4, title: "Repetitivas", desc: "Escoger 'm' variables repetitivas que contengan todas las dimensiones." },
+                            { step: 5, title: "Formar Grupos", desc: "Combinar variables para formar los 'k' grupos Pi adimensionales." }
+                        ].map((item, idx) => (
+                            <div key={idx} className="flex-1 bg-white p-4 rounded-lg border border-slate-200 shadow-sm relative mt-4 md:mt-0">
+                                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-white font-bold border-2 border-white shadow-sm">
+                                    {item.step}
+                                </div>
+                                <h4 className="mt-4 font-bold text-center text-slate-800 text-sm">{item.title}</h4>
+                                <p className="text-xs text-center text-slate-500 mt-2">{item.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Nuevo: Ejemplo Práctico Caída Libre */}
+                <div className="mt-16 bg-white p-8 rounded-xl border border-slate-200 shadow-lg">
+                    <h3 className="text-2xl font-serif font-bold text-slate-800 mb-6 flex items-center">
+                        <span className="bg-emerald-100 p-2 rounded mr-3 text-emerald-700"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg></span>
+                        Ejemplo Práctico: Velocidad de Caída Libre
+                    </h3>
+                    
+                    <div className="grid md:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <p className="text-slate-600 mb-4">
+                                Queremos hallar la fórmula de la velocidad (<span className="math-font italic">v</span>) de un objeto que cae desde una altura (<span className="math-font italic">h</span>) por efecto de la gravedad (<span className="math-font italic">g</span>).
+                            </p>
+                            
+                            <ul className="space-y-3 text-sm text-slate-700 bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                <li className="flex justify-between border-b border-slate-200 pb-2">
+                                    <span>Variables (n=3):</span>
+                                    <span className="font-mono text-emerald-700 font-bold">v, h, g</span>
+                                </li>
+                                <li className="flex justify-between border-b border-slate-200 pb-2">
+                                    <span>Dimensiones (m=2):</span>
+                                    <span className="font-mono text-slate-500">[L], [T]</span>
+                                </li>
+                                <li className="flex justify-between pt-2">
+                                    <span>Grupos Pi (k = 3-2):</span>
+                                    <span className="font-mono font-bold bg-yellow-100 px-2 rounded">1 solo grupo</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div className="flex flex-col items-center justify-center bg-slate-50 p-6 rounded-lg border border-slate-200 text-center">
+                            <div className="text-sm text-slate-500 mb-2 uppercase tracking-widest font-bold">Resultado</div>
+                            <div className="math-font text-2xl text-emerald-800 mb-4 font-bold">
+                                Π = v / √(gh) = Constante
+                            </div>
+                            <p className="text-xs text-slate-600 italic mb-4">
+                                "La velocidad es proporcional a la raíz cuadrada de la gravedad por la altura."
+                            </p>
+
+                            {/* Nuevo: Conexión con Froude */}
+                            <div className="bg-yellow-50 p-4 rounded border border-yellow-200 text-sm text-slate-700 shadow-sm w-full">
+                                <strong className="text-emerald-800">¿Te recuerda algo esta respuesta?</strong>
+                                <p className="mt-1">
+                                    ¡Por supuesto! Es el <strong>Número de Froude</strong>. <br/>
+                                    El Teorema Pi no es solo teoría; es la herramienta para obtener matemáticamente todos los demás números adimensionales que existen.
+                                </p>
+                            </div>
+                            
+                            <div className="mt-4 flex items-center justify-center space-x-4 opacity-70">
+                                {/* Simple visual rep */}
+                                <div className="h-16 w-1 bg-slate-300 relative">
+                                    <div className="absolute -left-1 top-0 w-3 h-3 bg-red-500 rounded-full animate-bounce"></div>
+                                    <div className="absolute right-2 top-8 text-xs font-mono">g</div>
+                                    <div className="absolute -left-4 top-8 text-xs font-mono">h</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        );
+
+        const SimilaritySection = () => (
+            <div className="max-w-4xl mx-auto space-y-12 animate-fade-in pb-12">
+                <div className="prose prose-lg max-w-none text-slate-700">
+                    <h2 className="text-4xl font-serif font-bold text-emerald-800 mb-6 border-b border-slate-200 pb-4">Semejanza Dimensional: El Arte del Escalado</h2>
+                    <p className="text-xl leading-relaxed">
+                        Para que un modelo a escala (como un pequeño avión en un túnel de viento) prediga correctamente el comportamiento del prototipo real, no basta con que se parezca geométricamente. Deben cumplirse tres condiciones de similitud rigurosas, como se detalla en textos clásicos como <em>Potter (2012)</em> y <em>Streeter (2000)</em>.
+                    </p>
+                </div>
+
+                <div className="grid gap-8">
+                    {/* Geométrica */}
+                    <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-md flex flex-col md:flex-row gap-6 items-center">
+                        <div className="w-24 h-24 flex-shrink-0 bg-blue-50 rounded-full flex items-center justify-center border border-blue-100">
+                            <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <div>
+                            <h3 className="text-2xl font-serif font-bold text-slate-800 mb-2">1. Similitud Geométrica</h3>
+                            <p className="text-slate-600 mb-3">
+                                Requiere que el modelo y el prototipo tengan la misma forma exacta. Todas las dimensiones correspondientes deben tener la misma relación constante.
+                            </p>
+                            <div className="bg-slate-50 p-3 rounded font-mono text-sm text-blue-800 border-l-4 border-blue-500">
+                                L<sub>m</sub> / L<sub>p</sub> = λ<sub>L</sub> (Escala de Longitud)
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Cinemática */}
+                    <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-md flex flex-col md:flex-row gap-6 items-center">
+                        <div className="w-24 h-24 flex-shrink-0 bg-yellow-50 rounded-full flex items-center justify-center border border-yellow-100">
+                            <svg className="w-12 h-12 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div>
+                            <h3 className="text-2xl font-serif font-bold text-slate-800 mb-2">2. Similitud Cinemática</h3>
+                            <p className="text-slate-600 mb-3">
+                                Implica que los patrones de flujo sean idénticos. Las velocidades en puntos homólogos deben tener una relación constante. Las líneas de corriente deben ser geométricamente semejantes.
+                            </p>
+                            <div className="bg-slate-50 p-3 rounded font-mono text-sm text-yellow-800 border-l-4 border-yellow-500">
+                                V<sub>m</sub> / V<sub>p</sub> = λ<sub>V</sub> = λ<sub>L</sub> / λ<sub>T</sub> (Escala de Velocidad)
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Dinámica */}
+                    <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-md flex flex-col md:flex-row gap-6 items-center">
+                        <div className="w-24 h-24 flex-shrink-0 bg-red-50 rounded-full flex items-center justify-center border border-red-100">
+                            <svg className="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        </div>
+                        <div>
+                            <h3 className="text-2xl font-serif font-bold text-slate-800 mb-2">3. Similitud Dinámica</h3>
+                            <p className="text-slate-600 mb-3">
+                                La condición más estricta. Exige que las relaciones de fuerzas (Inercia, Viscosidad, Gravedad, etc.) sean idénticas. Esto se logra igualando los números adimensionales relevantes.
+                            </p>
+                            <div className="bg-slate-50 p-3 rounded font-mono text-sm text-red-800 border-l-4 border-red-500">
+                                Re<sub>m</sub> = Re<sub>p</sub> ; Fr<sub>m</sub> = Fr<sub>p</sub> ; Eu<sub>m</sub> = Eu<sub>p</sub>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mt-8 bg-emerald-50 border border-emerald-200 rounded-lg p-6 text-center shadow-sm">
+                    <p className="text-emerald-800 font-bold">
+                        En la práctica, es casi imposible satisfacer todas las igualdades simultáneamente. El ingeniero debe decidir cuál número adimensional domina el fenómeno (ej. Reynolds para submarinos, Froude para barcos en superficie).
+                    </p>
+                </div>
+            </div>
+        );
+
+        const ExercisesSection = () => {
+            const [openExercise, setOpenExercise] = useState(null);
+
+            const exercises = [
+                {
+                    id: 1,
+                    title: "Régimen en Tubería",
+                    question: "Por una tubería de 10 cm de diámetro fluye aceite con una densidad de 900 kg/m³ y viscosidad de 0.1 Pa·s a una velocidad de 2 m/s. ¿Qué tipo de flujo es?",
+                    solution: (
+                        <div>
+                            <p className="mb-2"><strong>Cálculo:</strong> Re = (900 * 2 * 0.1) / 0.1 = 1800.</p>
+                            <p><strong>Conclusión:</strong> Dado que 1800 &lt; 2300 (límite laminar crítico), el flujo es <strong>Laminar</strong>.</p>
+                        </div>
+                    )
+                },
+                {
+                    id: 2,
+                    title: "Avión Supersónico",
+                    question: "Un avión vuela a 600 m/s en una zona de la estratósfera donde la temperatura es baja y la velocidad del sonido es 300 m/s. ¿Cuál es su número de Mach?",
+                    solution: (
+                        <div>
+                            <p className="mb-2"><strong>Cálculo:</strong> Ma = 600 / 300 = 2.0.</p>
+                            <p><strong>Conclusión:</strong> El número de Mach es 2. Esto significa que el avión vuela al doble de la velocidad del sonido (Flujo <strong>Supersónico</strong>).</p>
+                        </div>
+                    )
+                },
+                {
+                    id: 3,
+                    title: "Canal de Agua",
+                    question: "En un canal abierto de 1 metro de profundidad, el agua fluye a 5 m/s. Sabiendo que g ≈ 9.8 m/s², determine si el flujo es subcrítico o supercrítico.",
+                    solution: (
+                        <div>
+                            <p className="mb-2"><strong>Cálculo:</strong> Fr = v / √(gL) = 5 / √(9.8 * 1) ≈ 5 / 3.13 ≈ 1.6.</p>
+                            <p><strong>Conclusión:</strong> Fr &gt; 1, por lo tanto el flujo es <strong>Supercrítico</strong> (rápido, dominado por la inercia).</p>
+                        </div>
+                    )
+                },
+                {
+                    id: 4,
+                    title: "Gotas de Spray",
+                    question: "Se quiere atomizar un líquido. Si la tensión superficial es alta y la velocidad del chorro baja, ¿Qué número adimensional debemos analizar para saber si se formarán gotas pequeñas?",
+                    solution: (
+                        <div>
+                            <p><strong>Respuesta:</strong> El <strong>Número de Weber (We)</strong>.</p>
+                            <p className="mt-2">Este número relaciona la inercia del fluido (que trata de romper el chorro) con la tensión superficial (que trata de mantenerlo unido). Un We alto favorece la atomización.</p>
+                        </div>
+                    )
+                },
+                {
+                    id: 5,
+                    title: "Pérdida de Presión",
+                    question: "Si queremos relacionar la caída de presión en una válvula con la energía cinética del fluido para obtener un coeficiente de pérdida K, ¿Qué número es la base de este análisis?",
+                    solution: (
+                        <div>
+                            <p><strong>Respuesta:</strong> El <strong>Número de Euler (Eu)</strong>.</p>
+                            <p className="mt-2">K = Δp / (0.5 * ρ * v²), lo cual es esencialmente una forma del Número de Euler. Mide la relación entre fuerzas de presión e inercia.</p>
+                        </div>
+                    )
+                }
+            ];
+
+            return (
+                <div className="max-w-4xl mx-auto space-y-12 animate-fade-in pb-12">
+                     <div className="prose prose-lg max-w-none text-slate-700">
+                        <h2 className="text-4xl font-serif font-bold text-emerald-800 mb-6 border-b border-slate-200 pb-4">Ejercicios de Práctica</h2>
+                        <p className="text-xl leading-relaxed mb-8">
+                            Pon a prueba tu comprensión sobre los números adimensionales con estos problemas aplicados. Intenta resolverlos antes de ver la solución.
+                        </p>
+                    </div>
+
+                    <div className="grid gap-6">
+                        {exercises.map((ex) => (
+                            <div key={ex.id} className="bg-white rounded-xl border border-slate-200 shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg">
+                                <div className="p-6">
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className="flex items-center gap-3">
+                                            <span className="bg-emerald-100 text-emerald-800 font-bold w-8 h-8 flex items-center justify-center rounded-full text-sm">{ex.id}</span>
+                                            <h3 className="text-xl font-bold text-slate-800">{ex.title}</h3>
+                                        </div>
+                                    </div>
+                                    <p className="text-slate-600 mb-6 pl-11">{ex.question}</p>
+                                    
+                                    <div className="pl-11">
+                                        <button 
+                                            onClick={() => setOpenExercise(openExercise === ex.id ? null : ex.id)}
+                                            className="text-sm font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-2 transition-colors"
+                                        >
+                                            {openExercise === ex.id ? 'Ocultar Solución' : 'Ver Solución'}
+                                            <svg 
+                                                className={`w-4 h-4 transform transition-transform ${openExercise === ex.id ? 'rotate-180' : ''}`} 
+                                                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                            >
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </button>
+                                        
+                                        {openExercise === ex.id && (
+                                            <div className="mt-4 bg-slate-50 p-4 rounded-lg border border-slate-100 text-slate-700 text-sm animate-fade-in">
+                                                {ex.solution}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const BibliographySection = () => (
+             <div className="max-w-4xl mx-auto animate-fade-in pb-12">
+                <h2 className="text-4xl font-serif font-bold text-emerald-800 mb-8 border-b border-slate-200 pb-4">Referencias Bibliográficas</h2>
+                <div className="space-y-6">
+                    
+                    {/* Sandoval */}
+                    <div className="bg-white p-8 rounded-xl border border-slate-200 border-l-4 border-l-emerald-600 shadow-lg hover:shadow-xl transition-all group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-5">
+                             <svg className="w-24 h-24 text-emerald-900" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                        </div>
+                        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start gap-6">
+                            <div>
+                                <h3 className="text-2xl font-serif font-bold text-slate-800 mb-2 group-hover:text-emerald-700 transition-colors">Mecánica de Fluidos</h3>
+                                <p className="text-lg text-slate-600 font-medium">Sandoval Herrera, Juan</p>
+                                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3 text-sm text-slate-500">
+                                    <span className="bg-slate-100 px-2 py-1 rounded border border-slate-200">Universidad de América</span>
+                                    <span>2018</span>
+                                    <span className="italic">Libro de Texto</span>
+                                </div>
+                            </div>
+                            <a 
+                                href="https://editorial.uamerica.edu.co/index.php/editorial/catalog/view/28/15/257" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="whitespace-nowrap bg-emerald-700 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg text-sm font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-2 transform hover:-translate-y-1"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                Descarga Gratuita
+                            </a>
+                        </div>
+                    </div>
+
+                    {/* Galloni - Nuevo */}
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 hover:border-slate-300 transition-colors shadow-sm">
+                        <h3 className="text-xl font-bold text-slate-800 mb-2">Applications and applicability of the cavitation technology</h3>
+                        <p className="text-slate-600">Galloni, M. G., Fabbrizio, V., Giannantonio, R., Falletta, E., & Bianchi, C. L.</p>
+                        <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-500 mb-3">
+                            <span className="italic">Current Opinion in Chemical Engineering</span>
+                            <span>•</span>
+                            <span>Vol. 48, 101129</span>
+                            <span>•</span>
+                            <span>2025</span>
+                        </div>
+                        <a href="https://doi.org/10.1016/j.coche.2025.101129" target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:text-emerald-800 text-sm font-bold flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            Ver Artículo (DOI)
+                        </a>
+                    </div>
+
+                    {/* Potter */}
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 hover:border-slate-300 transition-colors shadow-sm">
+                        <h3 className="text-xl font-bold text-slate-800 mb-2">Mecánica de Fluidos</h3>
+                        <p className="text-slate-600">Potter, Merle C. & Wiggert, David C.</p>
+                        <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-500">
+                            <span>4ta Edición</span>
+                            <span>•</span>
+                            <span>Cengage Learning Latin America, 2012</span>
+                            <span>•</span>
+                            <span className="text-emerald-600 font-semibold">Capítulo 6</span>
+                        </div>
+                    </div>
+
+                    {/* Streeter */}
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 hover:border-slate-300 transition-colors shadow-sm">
+                        <h3 className="text-xl font-bold text-slate-800 mb-2">Mecánica de los Fluidos</h3>
+                        <p className="text-slate-600">Streeter, Victor L., Wylie, E. Benjamin & Bedford, Keith W.</p>
+                        <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-500">
+                            <span>9na Edición</span>
+                            <span>•</span>
+                            <span>McGraw-Hill, 2000</span>
+                        </div>
+                    </div>
+
+                    {/* White */}
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 hover:border-slate-300 transition-colors shadow-sm">
+                        <h3 className="text-xl font-bold text-slate-800 mb-2">Fluid Mechanics</h3>
+                        <p className="text-slate-600">White, Frank M.</p>
+                        <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-500">
+                            <span>McGraw-Hill, 1986</span>
+                            <span>•</span>
+                            <span className="text-emerald-600 font-semibold">Capítulo 5</span>
+                        </div>
+                    </div>
+                    
+                    {/* Cengel */}
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 hover:border-slate-300 transition-colors shadow-sm">
+                        <h3 className="text-xl font-bold text-slate-800 mb-2">Mecánica de Fluidos: Fundamentos y Aplicaciones</h3>
+                        <p className="text-slate-600">Cengel, Yunus A. & Cimbala, John M.</p>
+                        <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-500">
+                            <span>2da Edición</span>
+                            <span>•</span>
+                            <span>McGraw-Hill, 2010</span>
+                        </div>
+                    </div>
+
+                    {/* Video Recomendado */}
+                    <div className="mt-8 bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl p-8 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 border-l-4 border-yellow-500">
+                        <div>
+                            <h3 className="text-xl font-bold text-yellow-400 mb-2 flex items-center gap-2">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                Video Recomendado
+                            </h3>
+                            <p className="text-slate-300 text-sm italic max-w-lg">
+                                "Si quieres conocer otra aplicación de este tema en el contexto de los intercambiadores de calor, te invito a ver el siguiente video."
+                            </p>
+                        </div>
+                        <a 
+                            href="https://youtu.be/ATIS0xcOrnk?si=ITLoYcm2IclxHq2Z" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-red-500/30 whitespace-nowrap"
+                        >
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                            Ver en YouTube
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        );
+
+        const ForcesArena = ({ numbers, forcesList }) => {
+            const [force1, setForce1] = useState('');
+            const [force2, setForce2] = useState('');
+            const [result, setResult] = useState(null);
+
+            useEffect(() => {
+                if (force1 && force2) {
+                    const found = numbers.find(n => 
+                        (n.forces.includes(force1) && n.forces.includes(force2))
+                    );
+                    setResult(found);
+                } else {
+                    setResult(null);
+                }
+            }, [force1, force2]);
+
+            return (
+                <div className="max-w-4xl mx-auto text-center animate-fade-in h-[75vh] flex flex-col justify-center">
+                    <h2 className="text-4xl font-serif font-bold mb-4 text-slate-800">La Arena de las Fuerzas</h2>
+                    <p className="text-slate-500 mb-12 text-lg">
+                        Selecciona dos fuerzas físicas para ver qué número adimensional gobierna su conflicto.
+                    </p>
+
+                    <div className="flex flex-col md:flex-row justify-center items-center gap-6 mb-12 relative z-10">
+                        <div className="w-full md:w-64">
+                            <label className="block text-xs uppercase tracking-widest text-slate-500 mb-2 text-left pl-1">Contendiente 1</label>
+                            <select 
+                                className="w-full bg-white text-lg p-4 rounded-lg border border-slate-300 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors appearance-none shadow-sm text-slate-700"
+                                onChange={(e) => setForce1(e.target.value)}
+                                value={force1}
+                            >
+                                <option value="">Seleccionar...</option>
+                                {forcesList.map(f => <option key={f} value={f}>{f}</option>)}
+                            </select>
+                        </div>
+
+                        <div className="text-4xl font-black text-red-500 font-serif pt-6">VS</div>
+
+                        <div className="w-full md:w-64">
+                            <label className="block text-xs uppercase tracking-widest text-slate-500 mb-2 text-left pl-1">Contendiente 2</label>
+                            <select 
+                                className="w-full bg-white text-lg p-4 rounded-lg border border-slate-300 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors appearance-none shadow-sm text-slate-700"
+                                onChange={(e) => setForce2(e.target.value)}
+                                value={force2}
+                            >
+                                <option value="">Seleccionar...</option>
+                                {forcesList.map(f => <option key={f} value={f}>{f}</option>)}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="min-h-[250px] flex items-center justify-center">
+                        {result ? (
+                            <div className="bg-white p-8 rounded-xl border border-slate-200 animate-fade-in shadow-xl max-w-2xl w-full transform transition-all hover:scale-105">
+                                <p className="text-xs uppercase tracking-widest text-emerald-600 mb-2 font-bold">El árbitro es</p>
+                                <h3 className="text-5xl font-serif font-bold text-slate-800 mb-2">{result.name}</h3>
+                                <div className="text-6xl font-mono text-slate-100 mb-4">{result.symbol}</div>
+                                <p className="text-slate-600">{result.desc}</p>
+                            </div>
+                        ) : (
+                            force1 && force2 ? (
+                                <div className="p-8 text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-300 max-w-lg">
+                                    <p className="mb-2 font-bold text-slate-400">Sin coincidencia directa</p>
+                                    <p className="text-sm">Esta combinación de fuerzas no corresponde a uno de los números primarios en esta lista, o quizás es un campo de estudio más exótico.</p>
+                                </div>
+                            ) : (
+                                <div className="text-slate-400 italic">
+                                    Esperando selección de combatientes...
+                                </div>
+                            )
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const Footer = () => (
+            <footer className="text-center py-8 text-slate-400 text-xs border-t border-slate-200 mt-12 bg-slate-50">
+                <p>Mecánica de Fluidos Interactiva</p>
+            </footer>
+        );
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
